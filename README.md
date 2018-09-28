@@ -9,7 +9,7 @@ instagram-scraper is a command-line application written in Python that scrapes a
 Install
 -------
 
-Clone the project and run the following command to install:
+Clone the project and run the following command to install(With Python 3.7.0b2):
 Make sure you cd into the *CusInscraper-master* folder before performing the command below.
 ```
 $ python setup.py install
@@ -19,6 +19,7 @@ $ python setup.py install
 Usage
 -----
 It is always necessary to provide your username and password if you want to use the scraper.
+Of course it is okay to use some throwaway acounts.
 
 To get an id from location name(Usally big cities come first in returning result of id):
 ```bash
@@ -29,34 +30,10 @@ To scrape data from a given location id:
 ```bash
 $ instagram-scraper -u [your username] -p [your password] --location [target location id] --me
 dia-types none --media-metadata -m [maximum number to scrap] --retry-forver
-             
+(--comments might be added for)             
 ```
 
-*By default, downloaded media will be placed in `<current working directory>/<location-id>`.*
-
-*It may be useful to specify the `--maximum <#>` argument to limit the total number of items to scrape when scraping by hashtag.*
-
-To specify multiple users, pass a delimited list of users:
-```bash
-$ instagram-scraper username1,username2,username3           
-```
-
-You can also supply a file containing a list of usernames:
-```bash
-$ instagram-scraper -f ig_users.txt           
-```
-
-```
-# ig_users.txt
-
-username1
-username2
-username3
-
-# and so on...
-```
-*The usernames may be separated by newlines, commas, semicolons, or whitespace.*
-
+*By default, downloaded media will be placed in `<current working directory>/<location-id>`.The data will be stored per hour per day*
 
 OPTIONS
 -------
@@ -173,11 +150,3 @@ of the public at large and to the detriment of our heirs and
 successors. We intend this dedication to be an overt act of
 relinquishment in perpetuity of all present and future rights to this
 software under copyright law.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.

@@ -120,6 +120,7 @@ class InstagramScraper(object):
         self.filecnt ={}
         self.buffcnt = {}
         self.posts = []
+        self.users = set()
         self.session = requests.Session()
         self.session.headers = {'user-agent': CHROME_WIN_UA}
         self.session.cookies.set('ig_pr', '1')
@@ -394,7 +395,8 @@ class InstagramScraper(object):
                 self.posts = []
                 self.buffcnt = {}
                 self.postdict = {}
-                self.filecnt ={}
+                self.filecnt = {}
+                self.users = set()
                 self.last_scraped_filemtime = 0
                 greatest_timestamp = 0
                 future_to_item = {}
@@ -436,36 +438,32 @@ class InstagramScraper(object):
                         item['edge_media_to_comment']['data'] = list(self.query_comments_gen(item['shortcode']))
 
                     dictkey = time.strftime('%Y%m%d%H',time.localtime(self.__get_timestamp(item)))
-                    print(dictkey)
-                    # postsdict buffcnt
                     if self.media_metadata or self.comments or self.include_location:
                         self.posts.append(item)
                         if (dictkey in self.buffcnt.keys()):
                             self.postdict[dictkey].append(item)
-                            self.buffcnt[dictkey] = self.buffcnt[dictkey] + 1
+                            nbuffcnt = self.buffcnt[dictkey] + 1
+                            self.buffcnt[dictkey] = nbuffcnt
+
+                            if (nbuffcnt >= 100):
+                                self.buffcnt[dictkey] = 0
+                                if dictkey in self.filecnt.keys():
+                                    newcnt = self.filecnt[dictkey] + 1
+                                    self.filecnt[dictkey] = newcnt
+                                    self.save_json(self.postdict[dictkey], '{0}/{1}.json'.format(dst, dictkey + '_' + str(newcnt)))
+                                else:
+                                    self.filecnt[dictkey] = 0
+                                    self.save_json(self.postdict[dictkey], '{0}/{1}.json'.format(dst, dictkey + '_0'))
+                                self.postdict[dictkey] = []
                         else:
                             self.postdict[dictkey]=[]
                             self.postdict[dictkey].append(item)
                             self.buffcnt[dictkey] = 1
 
+                    self.users.add(item['owner']['id'])
                     iter = iter + 1
 
-                    for x, y in self.buffcnt.items():
-                        if(y >= 100):
-                            y = 0
-                            for k, v in self.postdict.items():
-                                if k in self.filecnt.keys():
-                                    newcnt = self.filelcnt[k] + 1
-                                    self.filecnt[k] = newcnt
-                                    self.save_json(v, '{0}/{1}.json'.format(dst, k + '_' + str(newcnt)))
-                                else:
-                                    self.filecnt[k] = 0
-                                    self.save_json(v, '{0}/{1}.json'.format(dst, k + '_0'))
-                            self.postdict[x] = []
-
                     if self.maximum != 0 and iter >= self.maximum:
-                        for x, y in self.buffcnt.items():
-                            print(x, y)
                         break
 
                 if future_to_item:
@@ -486,8 +484,11 @@ class InstagramScraper(object):
                 if greatest_timestamp > self.last_scraped_filemtime:
                     self.set_last_scraped_timestamp(value, greatest_timestamp)
 
-                if (self.media_metadata or self.comments or self.include_location) and self.posts:
-                    for k, v in self.postdict.items():
+
+        finally:
+            if (self.media_metadata or self.comments or self.include_location) and self.posts:
+                for k, v in self.postdict.items():
+                    if self.buffcnt[k] > 0:
                         if k in self.filecnt.keys():
                             newcnt = self.filecnt[k] + 1
                             self.filecnt[k] = newcnt
@@ -495,8 +496,18 @@ class InstagramScraper(object):
                         else:
                             self.filecnt[k] = 0
                             self.save_json(v, '{0}/{1}.json'.format(dst, k + '_0'))
-                    #self.save_json(self.posts, '{0}/{1}.json'.format(dst, value))
-        finally:
+
+            file = open(value + '_TimeDistribution.txt', 'w')
+            for x, y in self.filecnt.items():
+                # print(x, y)
+                file.write(x + ' ' + str(y + 1) + '\n')
+            file.close()
+
+            file = open(value + '_UserNames.txt', 'w')
+            for x in self.users:
+                file.write(x + '\n')
+            file.close()
+
             self.quit = True
 
     def query_hashtag_gen(self, hashtag):
