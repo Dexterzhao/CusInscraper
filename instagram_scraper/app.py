@@ -120,7 +120,7 @@ class InstagramScraper(object):
         self.filecnt ={}
         self.buffcnt = {}
         self.posts = []
-        self.users = set()
+        #self.users = set()
         self.session = requests.Session()
         self.session.headers = {'user-agent': CHROME_WIN_UA}
         self.session.cookies.set('ig_pr', '1')
@@ -396,7 +396,7 @@ class InstagramScraper(object):
                 self.buffcnt = {}
                 self.postdict = {}
                 self.filecnt = {}
-                self.users = set()
+                #self.users = set()
                 self.last_scraped_filemtime = 0
                 greatest_timestamp = 0
                 future_to_item = {}
@@ -460,7 +460,7 @@ class InstagramScraper(object):
                             self.postdict[dictkey].append(item)
                             self.buffcnt[dictkey] = 1
 
-                    self.users.add(item['owner']['id'])
+                    #self.users.add(item['owner']['id'])
                     iter = iter + 1
 
                     if self.maximum != 0 and iter >= self.maximum:
@@ -497,16 +497,16 @@ class InstagramScraper(object):
                             self.filecnt[k] = 0
                             self.save_json(v, '{0}/{1}.json'.format(dst, k + '_0'))
 
-            file = open(value + '_TimeDistribution.txt', 'w')
-            for x, y in self.filecnt.items():
-                # print(x, y)
-                file.write(x + ' ' + str(y + 1) + '\n')
-            file.close()
+            # file = open(value + '_TimeDistribution.txt', 'w')
+            # for x, y in self.filecnt.items():
+            #     # print(x, y)
+            #     file.write(x + ' ' + str(y + 1) + '\n')
+            # file.close()
 
-            file = open(value + '_UserNames.txt', 'w')
-            for x in self.users:
-                file.write(x + '\n')
-            file.close()
+            # file = open(value + '_UserNames.txt', 'w')
+            # for x in self.users:
+            #     file.write(x + '\n')
+            # file.close()
 
             self.quit = True
 

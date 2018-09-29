@@ -1,8 +1,0 @@
-1.The program is used for scraping a given location instagram metadata happening recently, as people are posting continuously.
-2.It is stored in json format, with 100 posts per file, the file name was named as "year/month/day/hour"+'_'+"file number"
-3.The file TimeDistribution.txt gives time distribution of the data, usernames.txt gives all usernames scraped.
-4.Comments might be added to the post file by adding '--comments'
-
-Some limitations:
-1.Duplicates might occur, it could be avoided by adding "--latest", but this could cause all posts newly scraped are more recent than the old ones.
-2.Instagram currently does not provide api for scraping followers, working on scraping from webpages.

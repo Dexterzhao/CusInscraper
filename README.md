@@ -5,6 +5,24 @@ Instagram Scraper
 
 instagram-scraper is a command-line application written in Python that scrapes and downloads an instagram user's photos and videos. Use responsibly.
 
+Some details:
+
+1.The program is used for scraping a given location instagram metadata happening recently, as people are posting continuously.
+  
+However, when it keeps retrieving, it starts to get older ones as time goes, this can be seen by the name and timestamp of each file
+  
+Few new posts posted after the start of scraping are scraped.
+
+2.It is stored in json format, with 100 posts per file, the file name was named as "year/month/day/hour"+'_'+"file number"
+
+3.Duplicates might occur, if the program was stopped and restarted very frequently, it could be avoided by adding "--latest", but this could cause all posts newly scraped are more recent than the old ones.
+
+If the dataset is massive enough, then duplicates should be checked, within the file that store posts in the same hour.
+
+4.Instagram currently does not provide api for scraping followers, working on scraping from webpages and constructing graphs.
+
+To represent and analyze large graphs, neo4j is a tentative tool.
+
 
 Install
 -------
