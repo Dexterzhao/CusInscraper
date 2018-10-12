@@ -16,6 +16,7 @@ import sys
 import textwrap
 import time
 
+
 try:
     from urllib.parse import urlparse
 except ImportError:
@@ -116,10 +117,14 @@ class InstagramScraper(object):
         # Set up a logger
         self.logger = InstagramScraper.get_logger(level=logging.DEBUG, verbose=default_attr.get('verbose'))
 
+        #Customized Scraping
         self.postsdict = {}
         self.filecnt ={}
         self.buffcnt = {}
         self.posts = []
+        self.active_array =[]
+
+
         #self.users = set()
         self.session = requests.Session()
         self.session.headers = {'user-agent': CHROME_WIN_UA}
@@ -413,15 +418,15 @@ class InstagramScraper(object):
 
                 filesname = os.listdir('{0}'.format(dst))
 
-                for x in filesname:
-                    if not os.path.isdir(x):
-                        listname = x.split('_', 1 )
-                        listname1 = listname[1].split('.', 1 )
-                        if listname[0] in self.filecnt.keys():
-                            if self.filecnt[listname[0]] < int(listname1[0]):
-                                self.filecnt[listname[0]] = int(listname1[0])
-                        else:
-                            self.filecnt[listname[0]] = int(listname1[0])
+                # for x in filesname:
+                #     if not os.path.isdir(x):
+                #         listname = x.split('_', 1 )
+                #         listname1 = listname[1].split('.', 1 )
+                #         if listname[0] in self.filecnt.keys():
+                #             if self.filecnt[listname[0]] < int(listname1[0]):
+                #                 self.filecnt[listname[0]] = int(listname1[0])
+                #         else:
+                #             self.filecnt[listname[0]] = int(listname1[0])
 
                 for item in tqdm.tqdm(media_generator(value), desc='Searching {0} for posts'.format(value), unit=" media",
                                       disable=self.quiet):
@@ -438,32 +443,64 @@ class InstagramScraper(object):
                         item['edge_media_to_comment']['data'] = list(self.query_comments_gen(item['shortcode']))
 
                     dictkey = time.strftime('%Y%m%d%H',time.localtime(self.__get_timestamp(item)))
+                    int_dictkey = int(dictkey)
+                    key_len = len(self.active_array)
                     if self.media_metadata or self.comments or self.include_location:
-                        self.posts.append(item)
-                        if (dictkey in self.buffcnt.keys()):
+                        if (dictkey in self.postdict.keys()):
                             self.postdict[dictkey].append(item)
-                            nbuffcnt = self.buffcnt[dictkey] + 1
-                            self.buffcnt[dictkey] = nbuffcnt
-
-                            if (nbuffcnt >= 100):
-                                self.buffcnt[dictkey] = 0
-                                if dictkey in self.filecnt.keys():
-                                    newcnt = self.filecnt[dictkey] + 1
-                                    self.filecnt[dictkey] = newcnt
-                                    self.save_json(self.postdict[dictkey], '{0}/{1}.json'.format(dst, dictkey + '_' + str(newcnt)))
-                                else:
-                                    self.filecnt[dictkey] = 0
-                                    self.save_json(self.postdict[dictkey], '{0}/{1}.json'.format(dst, dictkey + '_0'))
-                                self.postdict[dictkey] = []
                         else:
                             self.postdict[dictkey]=[]
                             self.postdict[dictkey].append(item)
-                            self.buffcnt[dictkey] = 1
+
+
+                        if self.active_array:
+                            if key_len == 3:
+                                if int_dictkey not in self.active_array:
+                                    print(self.active_array)
+                                    self.save_json(self.postdict[str(self.active_array[2])],'{0}/{1}.json'.format(dst, str(self.active_array[2])))
+                                    del self.postdict[str(self.active_array[2])]
+                                    self.active_array[2] = self.active_array[1]
+                                    self.active_array[1] = self.active_array[0]
+                                    self.active_array[0] = int_dictkey
+                            else:
+                                if int_dictkey not in self.active_array:
+                                    self.active_array.append(self.active_array[key_len-1])
+                                    if key_len > 1:
+                                        for i in range(key_len - 1, 0, -1):
+                                            self.active_array[i] = self.active_array[i-1]
+                                    self.active_array[0] = int_dictkey
+
+                        else:
+                            self.active_array.append(int_dictkey)
+
+
+                        #self.posts.append(item)
+
+                        # if (dictkey in self.buffcnt.keys()):
+                        #     self.postdict[dictkey].append(item)
+                        #     nbuffcnt = self.buffcnt[dictkey] + 1
+                        #     self.buffcnt[dictkey] = nbuffcnt
+                        #
+                        #     if (nbuffcnt >= 100):
+                        #         self.buffcnt[dictkey] = 0
+                        #         if dictkey in self.filecnt.keys():
+                        #             newcnt = self.filecnt[dictkey] + 1
+                        #             self.filecnt[dictkey] = newcnt
+                        #             self.save_json(self.postdict[dictkey], '{0}/{1}.json'.format(dst, dictkey + '_' + str(newcnt)))
+                        #         else:
+                        #             self.filecnt[dictkey] = 0
+                        #             self.save_json(self.postdict[dictkey], '{0}/{1}.json'.format(dst, dictkey + '_0'))
+                        #         self.postdict[dictkey] = []
+                        # else:
+                        #     self.postdict[dictkey]=[]
+                        #     self.postdict[dictkey].append(item)
+                        #     self.buffcnt[dictkey] = 1
 
                     #self.users.add(item['owner']['id'])
                     iter = iter + 1
 
                     if self.maximum != 0 and iter >= self.maximum:
+
                         break
 
                 if future_to_item:
@@ -486,16 +523,20 @@ class InstagramScraper(object):
 
 
         finally:
-            if (self.media_metadata or self.comments or self.include_location) and self.posts:
+            if (self.media_metadata or self.comments or self.include_location):
+                #and self.posts
                 for k, v in self.postdict.items():
-                    if self.buffcnt[k] > 0:
-                        if k in self.filecnt.keys():
-                            newcnt = self.filecnt[k] + 1
-                            self.filecnt[k] = newcnt
-                            self.save_json(v, '{0}/{1}.json'.format(dst, k + '_' + str(newcnt)))
-                        else:
-                            self.filecnt[k] = 0
-                            self.save_json(v, '{0}/{1}.json'.format(dst, k + '_0'))
+                    # print(k+'\n')
+                    # print(dst)
+                    self.save_json(v, '{0}/{1}.json'.format(dst, k))
+                    # if self.buffcnt[k] > 0:
+                    #     if k in self.filecnt.keys():
+                    #         newcnt = self.filecnt[k] + 1
+                    #         self.filecnt[k] = newcnt
+                    #         self.save_json(v, '{0}/{1}.json'.format(dst, k + '_' + str(newcnt)))
+                    #     else:
+                    #         self.filecnt[k] = 0
+                    #         self.save_json(v, '{0}/{1}.json'.format(dst, k + '_0'))
 
             # file = open(value + '_TimeDistribution.txt', 'w')
             # for x, y in self.filecnt.items():
