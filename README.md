@@ -13,7 +13,7 @@ However, when it keeps retrieving, it starts to get older ones as time goes, thi
   
 Few new posts posted after the start of scraping are scraped.
 
-2.It is stored in json format, with 100 posts per file, the file name was named as "year/month/day/hour"+'_'+"file number"
+2.It is stored in json format, with 100 posts per file, the file name was named as "year/month/day/hour"
 
 3.Duplicates might occur, if the program was stopped and restarted very frequently, it could be avoided by adding "--latest", but this could cause all posts newly scraped are more recent than the old ones.
 
@@ -41,14 +41,24 @@ Of course it is okay to use some throwaway acounts.
 
 To get an id from location name(Usally big cities come first in returning result of id):
 ```bash
-$ instagram-scraper -u [your username] -p [your password] --search-location [location name]          
+$ instagram-scraper -u [your username] -p [your password] --search-location [location name]
 ```
+For instance, you want to know location-id in los angeles 
+```bash
+$ instagram-scraper -u [your username] -p [your password] --search-location los angeles        
+```
+The query result should be:
+![los angeles search location](Search_location.png)
 
 To scrape data from a given location id:
 ```bash
 $ instagram-scraper -u [your username] -p [your password] --location [target location id] --me
 dia-types none --media-metadata -m [maximum number to scrap] --retry-forver
 (--comments might be added for)             
+```
+For instance, you want to scrap 1000000 posts from los angels,but only want to fetch metadata with comments and locations
+```bash
+$ instagram-scraper -u [your username] -p [your password] --location 212999109 --media-types none --comments --include-location -m 1000000 --retry-forever        
 ```
 
 *By default, downloaded media will be placed in `<current working directory>/<location-id>`.The data will be stored per hour per day*
