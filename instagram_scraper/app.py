@@ -457,7 +457,7 @@ class InstagramScraper(object):
                             if key_len == 10:
                                 if int_dictkey not in self.active_array:
                                     print(self.active_array)
-                                    self.save_json(self.postdict[str(self.active_array[9])],'{0}/{1}.json'.format(dst, str(self.active_array[2])))
+                                    self.save_json(self.postdict[str(self.active_array[9])],'{0}/{1}.json'.format(dst, str(self.active_array[9])))
                                     del self.postdict[str(self.active_array[9])]
                                     for i in range(8, 0, -1):
                                         self.active_array[i] = self.active_array[i - 1]
