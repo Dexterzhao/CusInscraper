@@ -459,7 +459,7 @@ class InstagramScraper(object):
                                     print(self.active_array)
                                     self.save_json(self.postdict[str(self.active_array[9])],'{0}/{1}.json'.format(dst, str(self.active_array[9])))
                                     del self.postdict[str(self.active_array[9])]
-                                    for i in range(8, 0, -1):
+                                    for i in range(9, 0, -1):
                                         self.active_array[i] = self.active_array[i - 1]
                                     self.active_array[0] = int_dictkey
                             else:
