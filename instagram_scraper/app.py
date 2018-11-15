@@ -535,6 +535,7 @@ class InstagramScraper(object):
                     # print(dst)
                     self.save_json(v, '{0}/{1}.json'.format(dst, k))
                 with open('{0}/endcursor.txt'.format(dst),'w') as f:
+                    print("\nWrite cursor to file:"+self.saved_cursor)
                     f.write(self.saved_cursor)
             self.quit = True
                     # if self.buffcnt[k] > 0:
@@ -569,7 +570,7 @@ class InstagramScraper(object):
             with open('{0}/endcursor.txt'.format(dst)) as f:
                 first_line = f.readline()
                 self.saved_cursor = first_line
-                print('Read end_cursor:'+self.saved_cursor)
+        print('\nRead end cursor:'+self.saved_cursor)
         return self.__query_gen(QUERY_LOCATION, QUERY_LOCATION_VARS, 'location', location, self.saved_cursor)
 
     def __query_gen(self, url, variables, entity_name, query, end_cursor=''):
@@ -610,6 +611,7 @@ class InstagramScraper(object):
                 nodes.extend(self._get_nodes(posts))
                 end_cursor = posts['page_info']['end_cursor']
                 self.saved_cursor = end_cursor
+                print("\nCursor found:"+self.saved_cursor)
                 return nodes, end_cursor
 
         return None, None
