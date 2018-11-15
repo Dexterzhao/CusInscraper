@@ -81,11 +81,11 @@ chmod +x xxx.sh
 ```bash
 crontab -e
 ```
-Add the text
+Add the text and save file,this will enable the shell script when system is rebooted
 ```
 @reboot /path/to/shell/xxx.sh
 ```
-Save file, this will enable the shell script when system is rebooted
+
 4. Run the shell script ./xxx.sh 
 ```bash
 nohup ./xxx.sh &
