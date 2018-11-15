@@ -119,10 +119,11 @@ class InstagramScraper(object):
 
         #Customized Scraping
         self.postsdict = {}
-        self.filecnt ={}
+        self.filecnt = {}
         self.buffcnt = {}
         self.posts = []
-        self.active_array =[]
+        self.active_array = []
+        self.saved_cursor = ''
 
 
         #self.users = set()
@@ -182,7 +183,7 @@ class InstagramScraper(object):
                     return
                 response.raise_for_status()
                 content_length = response.headers.get('Content-Length')
-                if content_length is None or len(response.content) != int(content_length):
+                if content_length is not None and len(response.content) != int(content_length):
                     #if content_length is None we repeat anyway to get size and be confident
                     raise PartialContentException('Partial response')
                 return response
@@ -254,12 +255,12 @@ class InstagramScraper(object):
         self.session.headers.update({'X-CSRFToken': req.cookies['csrftoken'], 'X-Instagram-AJAX': '1'})
 
         self.session.headers.update({'Referer': BASE_URL[:-1] + checkpoint_url})
-        mode = input('Choose a challenge mode (0 - SMS, 1 - Email): ')
+        mode = int(input('Choose a challenge mode (0 - SMS, 1 - Email): '))
         challenge_data = {'choice': mode}
         challenge = self.session.post(BASE_URL[:-1] + checkpoint_url, data=challenge_data, allow_redirects=True)
         self.session.headers.update({'X-CSRFToken': challenge.cookies['csrftoken'], 'X-Instagram-AJAX': '1'})
 
-        code = input('Enter code received: ')
+        code = int(input('Enter code received: '))
         code_data = {'security_code': code}
         code = self.session.post(BASE_URL[:-1] + checkpoint_url, data=code_data, allow_redirects=True)
         self.session.headers.update({'X-CSRFToken': code.cookies['csrftoken']})
@@ -401,6 +402,7 @@ class InstagramScraper(object):
                 self.buffcnt = {}
                 self.postdict = {}
                 self.filecnt = {}
+                self.saved_cursor = ''
                 #self.users = set()
                 self.last_scraped_filemtime = 0
                 greatest_timestamp = 0
@@ -416,7 +418,13 @@ class InstagramScraper(object):
                 if not os.path.exists(os.path.dirname('{0}/{1}.json'.format(dst, value))):
                     os.makedirs(os.path.dirname('{0}/{1}.json'.format(dst, value)))
 
-                filesname = os.listdir('{0}'.format(dst))
+                # if os.path.isfile('{0}/endcursor.txt'.format(dst)):
+                #     with open('{0}/endcursor.txt'.format(dst)) as f:
+                #         first_line = f.readline()
+                #         self.saved_cursor = first_line
+                #     print(self.saved_cursor)
+
+                # filesname = os.listdir('{0}'.format(dst))
 
                 # for x in filesname:
                 #     if not os.path.isdir(x):
@@ -472,8 +480,6 @@ class InstagramScraper(object):
 
                         else:
                             self.active_array.append(int_dictkey)
-
-
                         #self.posts.append(item)
 
                         # if (dictkey in self.buffcnt.keys()):
@@ -500,7 +506,6 @@ class InstagramScraper(object):
                     iter = iter + 1
 
                     if self.maximum != 0 and iter >= self.maximum:
-
                         break
 
                 if future_to_item:
@@ -529,6 +534,9 @@ class InstagramScraper(object):
                     # print(k+'\n')
                     # print(dst)
                     self.save_json(v, '{0}/{1}.json'.format(dst, k))
+                with open('{0}/endcursor.txt'.format(dst),'w') as f:
+                    f.write(self.saved_cursor)
+            self.quit = True
                     # if self.buffcnt[k] > 0:
                     #     if k in self.filecnt.keys():
                     #         newcnt = self.filecnt[k] + 1
@@ -549,13 +557,20 @@ class InstagramScraper(object):
             #     file.write(x + '\n')
             # file.close()
 
-            self.quit = True
+
 
     def query_hashtag_gen(self, hashtag):
         return self.__query_gen(QUERY_HASHTAG, QUERY_HASHTAG_VARS, 'hashtag', hashtag)
 
     def query_location_gen(self, location):
-        return self.__query_gen(QUERY_LOCATION, QUERY_LOCATION_VARS, 'location', location)
+        dst = self.get_dst_dir(location)
+        # Read saved end_cursor in endcursor.txt.
+        if os.path.isfile('{0}/endcursor.txt'.format(dst)):
+            with open('{0}/endcursor.txt'.format(dst)) as f:
+                first_line = f.readline()
+                self.saved_cursor = first_line
+                print('Read end_cursor:'+self.saved_cursor)
+        return self.__query_gen(QUERY_LOCATION, QUERY_LOCATION_VARS, 'location', location, self.saved_cursor)
 
     def __query_gen(self, url, variables, entity_name, query, end_cursor=''):
         """Generator for hashtag and location."""
@@ -594,6 +609,7 @@ class InstagramScraper(object):
 
                 nodes.extend(self._get_nodes(posts))
                 end_cursor = posts['page_info']['end_cursor']
+                self.saved_cursor = end_cursor
                 return nodes, end_cursor
 
         return None, None
@@ -995,7 +1011,7 @@ class InstagramScraper(object):
                                         try:
                                             match = re.match(r'bytes (?P<first>\d+)-(?P<last>\d+)/(?P<size>\d+)', response.headers['Content-Range'])
                                             range_file_position = int(match.group('first'))
-                                            if range_file_position != downloaded_before: 
+                                            if range_file_position != downloaded_before:
                                                 raise Exception()
                                             total_length = int(match.group('size'))
                                             media_file.truncate(total_length)
@@ -1144,7 +1160,7 @@ class InstagramScraper(object):
         """Saves the data to a json file."""
         if not os.path.exists(os.path.dirname(dst)):
             os.makedirs(os.path.dirname(dst))
-            
+
         if data:
             with open(dst, 'wb') as f:
                 json.dump(data, codecs.getwriter('utf-8')(f), indent=4, sort_keys=True, ensure_ascii=False)
