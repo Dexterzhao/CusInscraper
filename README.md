@@ -7,19 +7,19 @@ instagram-scraper is a command-line application written in Python that scrapes a
 
 Some details:
 
-1.The program is used for scraping a given location instagram metadata happening recently, as people are posting continuously.
+1. The program is used for scraping a given location instagram metadata happening recently, as people are posting continuously.
   
 However, when it keeps retrieving, it starts to get older ones as time goes, this can be seen by the name and timestamp of each file
   
 Few new posts posted after the start of scraping are scraped.
 
-2.It is stored in json format, with 100 posts per file, the file name was named as "year/month/day/hour"
+2. It is stored in json format, with 100 posts per file, the file name was named as "year/month/day/hour"
 
-3.Duplicates might occur, if the program was stopped and restarted very frequently, it could be avoided by adding "--latest", but this could cause all posts newly scraped are more recent than the old ones.
+3. Duplicates might occur, if the program was stopped and restarted very frequently, it could be avoided by adding "--latest", but this could cause all posts newly scraped are more recent than the old ones.
 
 If the dataset is massive enough, then duplicates should be checked, within the file that store posts in the same hour.
 
-4.Instagram currently does not provide api for scraping followers, working on scraping from webpages and constructing graphs.
+4. Instagram currently does not provide api for scraping followers, working on scraping from webpages and constructing graphs.
 
 To represent and analyze large graphs, neo4j is a tentative tool.
 
@@ -62,6 +62,31 @@ $ instagram-scraper -u [your username] -p [your password] --location 212999109 -
 ```
 
 *By default, downloaded media will be placed in `<current working directory>/<location-id>`.The data will be stored per hour per day*
+
+Breakpoint Recover
+------------------
+1. Save the following shell code as xxx.sh(Before that, change the instagram-scraper to your own path that has that installed instagram-scraper), the shell script will restart the program when the program carshes(exit code not 0), the endcursor.txt has the breakpoint to inform the program where to restart.
+```bash
+#!/bin/bash
+until ./anaconda3/bin/instagram-scraper -u [Username] -p [Password] --location 212999109 --media-types none --media-metadata -m 24000000; do
+  echo "Instagram-scraper crashed with exit code $?.  Respawning.." >&2
+  sleep 1
+done
+```
+2. Change access permisssion, run the following in console
+```bash
+chmod +x xxx.sh
+```
+3. Go to crontab  
+```bash
+crontab -e
+```
+Add the text
+```
+@reboot /path/to/shell/xxx.sh
+```
+Save file, this will enable the shell script when system is rebooted
+4. Run the shell script ./xxx.sh
 
 OPTIONS
 -------
