@@ -86,7 +86,10 @@ Add the text
 @reboot /path/to/shell/xxx.sh
 ```
 Save file, this will enable the shell script when system is rebooted
-4. Run the shell script ./xxx.sh
+4. Run the shell script ./xxx.sh 
+```bash
+nohup ./xxx.sh &
+```
 
 OPTIONS
 -------
