@@ -90,7 +90,7 @@ Add the text and save file,this will enable the shell script when system is rebo
 ```bash
 nohup ./xxx.sh &
 ```
-
+5. Termination: Terminate bash script before terminate the program. The program will terminate itself when no more available cursors can be found or the maximum is reached.
 OPTIONS
 -------
 
